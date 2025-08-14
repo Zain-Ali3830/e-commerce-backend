@@ -2,25 +2,33 @@ import pool from "../db/index.js";
 
 export const addOrder = async (req, res) => {
   try {
-    const { id } = req.params;
-    const quantity = req.body.quantity;
+    const { id } = req.query;
     const searchItem = await pool.query("SELECT * FROM products WHERE id=$1", [
       id,
     ]);
+    console.log(id)
+    const checkOrder= await pool.query("SELECT * FROM orders WHERE id=$1", [
+      id
+    ])
+    if(checkOrder.rows.length>0){
+      return res.json({
+        message:"Product already ordered"
+      })
+    }
     if (searchItem.rows.length === 0) {
       return res.json({
         message: "Product not found",
       });
     }
-    const totalPrice = searchItem.rows[0].price * quantity;
     const result = await pool.query(
-      "INSERT INTO orders(name,price,image,id,t_price) SELECT name,price,image,id,$1 FROM products WHERE id=$2 RETURNING *",
-      [totalPrice, id]
+      "INSERT INTO orders(name,price,image,id) SELECT name,price,image,id FROM products WHERE id=$1 RETURNING *",
+      [id]
     );
     res.json({
-      message: "Order created",
+      message: "Order Placed Successfully",
       data: result.rows[0],
     });
+    console.log(result.rows)
   } catch (error) {
     res.json({
       message: error.message,

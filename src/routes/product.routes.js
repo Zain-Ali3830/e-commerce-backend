@@ -11,6 +11,7 @@ import { addToWishlist } from "../controllers/products.controller.js";
 import { getWishlist } from "../controllers/products.controller.js";
 import { searchWishlist } from "../controllers/products.controller.js";
 import { deleteFromWishlist } from "../controllers/products.controller.js";
+import { getCart } from "../controllers/products.controller.js";
 const productsRouter = express.Router();
 
 productsRouter
@@ -18,12 +19,13 @@ productsRouter
   .post(upload.fields([{ name: "image", maxCount: 1 }]), addProducts);
 productsRouter.route("/getproducts").get(getProducts);
 productsRouter.route("/deleteproducts/:id").delete(deleteProduct);
-productsRouter.route("/searchproducts/:name").get(searchProduct);
-productsRouter.route("/addtocart/:id").post(addToCart);
-productsRouter.route("/searchcart/:id").get(searchCart);
-productsRouter.route("/deletecart/:id").delete(deleteFromCart);
-productsRouter.route("/addtowishlist/:id").post(addToWishlist);
+productsRouter.route("/searchproducts").get(searchProduct);
+productsRouter.route("/addtocart").post(addToCart);
+productsRouter.route("/searchcart ").get(searchCart);
+productsRouter.route("/deletecart").delete(deleteFromCart);
+productsRouter.route("/addtowishlist").post(addToWishlist);
 productsRouter.route("/getwishlist").get(getWishlist);
 productsRouter.route("/searchwishlist/:id").get(searchWishlist);
-productsRouter.route("/deletewishlist/:id").delete(deleteFromWishlist);
+productsRouter.route("/deletewishlist").delete(deleteFromWishlist);
+productsRouter.route("/getcart").get(getCart);
 export default productsRouter;

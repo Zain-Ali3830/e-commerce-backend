@@ -67,8 +67,9 @@ export const deleteProduct = async (req, res) => {
 
 export const searchProduct = async (req, res) => {
   try {
-    const { name } = req.params;
+    const { name } = req.query;
     const lowerCaseName = name.toLowerCase();
+    console.log(lowerCaseName);
     const result = await pool.query("SELECT * FROM products WHERE name=$1", [
       lowerCaseName,
     ]);
@@ -83,20 +84,20 @@ export const searchProduct = async (req, res) => {
 // Function to add to cart products
 
 export const addToCart = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.query;
   try {
     const result = await pool.query("SELECT * FROM products WHERE id=$1", [id]);
     const checkCart = await pool.query("SELECT * FROM addtocart WHERE id=$1", [
       id,
     ]);
     if (checkCart.rows.length > 0) {
-      res.json({
+     return res.json({
         message: "Product already in cart",
         data: checkCart.rows[0].name,
       });
     }
     const cart = await pool.query(
-      "INSERT INTO addtocart(name,price,image,id) SELECT name,price,image,id FROM products WHERE id=$1 RETURNING *",
+      "INSERT INTO addtocart(name,price,image,id,quantity) SELECT name,price,image,id ,0 FROM products WHERE id=$1 RETURNING *",
       [id]
     );
     res.json({ message: "Product add to cart", data: cart.rows });
@@ -108,13 +109,27 @@ export const addToCart = async (req, res) => {
   }
 };
 
+
+// Function to get all products from cart
+
+export const getCart = async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM addtocart");
+    res.json(result.rows);
+  } catch (error) {
+    res.json({
+      message: error.message,
+    });
+  }
+};
+
 // Search from cart
 
 export const searchCart = async (req, res) => {
-  const { id } = req.params;
+  const { name } = req.query;
   try {
-    const result = await pool.query("SELECT * FROM addtocart WHERE id=$1", [
-      id,
+    const result = await pool.query("SELECT * FROM addtocart WHERE name=$1", [
+      name,
     ]);
     res.json(result.rows);
     if (result.rows.length === 0) {
@@ -132,7 +147,7 @@ export const searchCart = async (req, res) => {
 // Delete from cart
 
 export const deleteFromCart = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.query;
   try {
     const result = await pool.query(
       "DELETE FROM addtocart WHERE id=$1 RETURNING *",
@@ -156,7 +171,7 @@ export const deleteFromCart = async (req, res) => {
 // Add to wishlist
 
 export const addToWishlist = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.query;
   try {
     const result = await pool.query("SELECT * FROM products WHERE id=$1", [id]);
     console.log(result);
@@ -189,10 +204,7 @@ export const addToWishlist = async (req, res) => {
 export const getWishlist = async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM wishlist");
-    res.json({
-      message: "All items from wishlist",
-      data: result.rows,
-    });
+    res.json(result.rows);
   } catch (error) {
     res.json({
       message: error.message,
@@ -222,7 +234,7 @@ export const searchWishlist = async (req, res) => {
 // Delete from wishlist
 
 export const deleteFromWishlist = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.query;
   try {
     const deleteItem = await pool.query(
       "DELETE FROM wishlist WHERE id=$1 RETURNING *",

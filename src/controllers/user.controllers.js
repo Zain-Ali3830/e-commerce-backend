@@ -25,7 +25,7 @@ export const signup = async (req, res) => {
       "INSERT INTO users (fullName,email,password,phone,confirmPassword) VALUES ($1,$2,$3,$4,$5) RETURNING *",
       [fullName, email, hashedPassword, phone, hashedConfirmPassword]
     );
-    res.json({
+    res.status(200).json({
       message: "user created",
       user: user.rows[0],
     });
@@ -45,7 +45,8 @@ export const login = async (req, res) => {
     const user = await pool.query("SELECT * FROM users WHERE email = $1", [
       email,
     ]);
-    console.log(user.rows[0]);
+    console.log("Login User",user.rows[0]);
+    console.log(user.rows.length);
     if (user.rows.length === 0) {
       return res.json({
         message: "User not found",
@@ -61,6 +62,7 @@ export const login = async (req, res) => {
     const token = jwt.sign({ id: user.rows[0].id }, SECRET, {
       expiresIn: "1d",
     });
+    console.log("Token", token);
     res.json({
       message: "Login successful",
       user: user.rows[0],
@@ -74,13 +76,26 @@ export const login = async (req, res) => {
 };
 
 
-// Function to delete all users 
+// Function to delete users 
 export const deleteUser = async (req, res) => {
-  const result = await pool.query("DELETE FROM users");
+  const { id } = req.query;
+ try{
+   const result = await pool.query("DELETE FROM users WHERE id=$1 RETURNING *", [id]);
+  if (result.rows.length === 0) {
+    return res.json({
+      message: "User not found",
+    });
+  }
   res.json({
-    message: "All users deleted",
+    message: "User deleted successfully",
     data: result.rows,
   });
+ }
+ catch (error) {
+   res.json({
+    message: error.message,
+  });
+ }
 }
 
 
